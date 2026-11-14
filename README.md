@@ -1,6 +1,6 @@
 # E-Wallet Post-Launch Funnel & 3-Way Reconciliation Analytics
 
-> **Chuỗi 3 Dự án Liên hoàn (E-Wallet Payment System)**:
+> **Chuỗi 3 Dự án (E-Wallet Payment System)**:
 > - **Stage 1 (Core Backend & BRD)**: [e-wallet-payment-simulator](https://github.com/phucdatphan/e-wallet-payment-simulator)
 > - **Stage 2 (UX, Agile Spec & UAT)**: [e-wallet-checkout-ux-uat](https://github.com/phucdatphan/e-wallet-checkout-ux-uat)
 > - **Stage 3 (Post-Launch Analytics & Reconciliation)** *(Repo hiện tại)*: [e-wallet-post-launch-analytics](https://github.com/phucdatphan/e-wallet-post-launch-analytics)
