@@ -151,3 +151,19 @@ SELECT
     ROUND(100.0 * SUM(CASE WHEN paid_count >= 2 THEN 1 ELSE 0 END) / COUNT(*), 2) AS repeat_rate_pct
 FROM user_orders
 GROUP BY wallet_type;
+
+
+-- 8. CUT-OFF TIME & T+1 SETTLEMENT DATE MISMATCH (Nâng cao)
+-- Mục đích: Phát hiện giao dịch sát nửa đêm (23:45 - 23:59) bị lệch ngày chốt sổ T+1 so với kỳ vọng.
+SELECT
+    o.order_id,
+    o.wallet_type,
+    o.created_at,
+    b.settlement_date,
+    JULIANDAY(b.settlement_date) - JULIANDAY(DATE(o.created_at)) AS settlement_lag_days
+FROM merchant_orders o
+JOIN bank_settlements b ON o.order_id = b.order_id
+WHERE o.status = 'Paid'
+  AND TIME(o.created_at) >= '23:45:00'
+ORDER BY o.created_at DESC
+LIMIT 15;

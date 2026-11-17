@@ -3,47 +3,345 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project 3: E-Wallet Post-Launch Analytics Dashboard</title>
+  <title>Stage 3 — Executive BI & 3-Way Reconciliation Dashboard v2.0</title>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; padding: 24px; background: #f8fafc; color: #0f172a; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    h1 { margin: 0 0 6px; font-size: 24px; }
-    .sub { color: #64748b; margin-bottom: 24px; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 16px; }
-    .kpi-val { font-size: 28px; font-weight: 800; color: #0f172a; margin-top: 6px; }
-    .kpi-lbl { font-size: 13px; color: #64748b; }
-    .bar-row { margin-bottom: 14px; font-size: 14px; }
-    .bar-bg { background: #e2e8f0; height: 14px; border-radius: 999px; overflow: hidden; margin-top: 6px; }
-    .bar-fill { height: 100%; background: #4f46e5; }
-    .box { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 10px; padding: 14px; font-size: 13px; }
+    :root {
+      --bg: #0b1120;
+      --panel: #111827;
+      --panel-2: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #6366f1;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+    body.light {
+      --bg: #f1f5f9;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #4f46e5;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; padding: 24px 18px 56px; background: var(--bg); color: var(--text); transition: background 0.2s, color 0.2s; }
+    .container { max-width: 1320px; margin: 0 auto; }
+
+    .header {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 20px 24px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 22px;
+    }
+    .header h1 { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
+    .header p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .pill-live { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.35); padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    body.light .pill-live { color: #059669; }
+    .theme-btn { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); padding: 8px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; position: relative; overflow: hidden; }
+    .kpi-lbl { font-size: 11.5px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .kpi-val { font-size: 26px; font-weight: 800; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
+    .kpi-sub { font-size: 12px; color: var(--muted); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1.25fr; gap: 18px; margin-bottom: 20px; }
+    @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 20px 22px; }
+    .card-title { font-size: 15px; font-weight: 800; margin: 0 0 4px; display: flex; justify-content: space-between; align-items: center; }
+    .card-sub { font-size: 12.5px; color: var(--muted); margin: 0 0 18px; }
+
+    /* Funnel */
+    .funnel-step { margin-bottom: 14px; }
+    .f-meta { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .f-bar { height: 26px; background: var(--panel-2); border-radius: 8px; overflow: hidden; position: relative; }
+    .f-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 11.5px; font-weight: 800; }
+    .dropoff-tag { display: inline-block; font-size: 11px; background: rgba(239,68,68,0.15); color: #f87171; padding: 2px 8px; border-radius: 99px; font-weight: 700; }
+    body.light .dropoff-tag { color: #dc2626; }
+
+    /* Wallet Comparison */
+    .wallet-cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .w-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; }
+    .w-head { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
+
+    /* Recon Table */
+    .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .f-btn { background: var(--panel-2); color: var(--muted); border: 1px solid var(--border); padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .f-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 10px; border-bottom: 1px solid var(--border); }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    .flag { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; font-family: monospace; }
+    .flag-AMOUNT_MISMATCH { background: rgba(239,68,68,0.16); color: #f87171; }
+    .flag-MISSING_IPN { background: rgba(245,158,11,0.16); color: #fbbf24; }
+    .flag-CUTOFF_LAG { background: rgba(99,102,241,0.18); color: #818cf8; }
+    body.light .flag-AMOUNT_MISMATCH { color: #b91c1c; }
+    body.light .flag-MISSING_IPN { color: #b45309; }
+    body.light .flag-CUTOFF_LAG { color: #4338ca; }
+
+    /* Recs */
+    .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 20px; }
+    .rec-card { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 14px; padding: 16px; }
+    .rec-card h4 { margin: 0 0 6px; font-size: 14px; }
+    .rec-card p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Project 3: E-Wallet Post-Launch Funnel & Reconciliation</h1>
-    <div class="sub">Dữ liệu 30 ngày go-live (10,500 đơn hàng • MoMo & ZaloPay)</div>
-
-    <div class="kpi-grid">
-      <div class="card"><div class="kpi-lbl">Tổng đơn tạo (Created)</div><div class="kpi-val">10,500</div></div>
-      <div class="card"><div class="kpi-lbl">Thanh toán thành công (Paid)</div><div class="kpi-val" style="color:#059669;">7,550 (71.9%)</div></div>
-      <div class="card"><div class="kpi-lbl">Drop-off tại bước QR</div><div class="kpi-val" style="color:#dc2626;">24.07%</div></div>
-      <div class="card"><div class="kpi-lbl">Peak Latency (19h–21h)</div><div class="kpi-val" style="color:#d97706;">2,502 ms</div></div>
-    </div>
-
-    <div class="card">
-      <strong>Checkout Funnel</strong>
-      <div style="margin-top:16px;">
-        <div class="bar-row">1. Order Created — 10,500 (100%)<div class="bar-bg"><div class="bar-fill" style="width:100%;"></div></div></div>
-        <div class="bar-row">2. Gateway QR Initiated — 9,944 (94.7%)<div class="bar-bg"><div class="bar-fill" style="width:94.7%;"></div></div></div>
-        <div class="bar-row">3. Payment Success (Paid) — 7,550 (71.9%)<div class="bar-bg"><div class="bar-fill" style="width:71.9%;background:#059669;"></div></div></div>
+    <div class="header">
+      <div>
+        <h1>📊 Stage 3 — Post-Launch Funnel & 3-Way Reconciliation BI v2.0</h1>
+        <p>30 ngày vận hành thực tế • 10,500 Merchant Orders × 9,944 Gateway Logs × 7,550 Bank Settlements</p>
+      </div>
+      <div class="header-actions">
+        <span class="pill-live">● SQLite Verified Data</span>
+        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Chế độ Sáng</button>
       </div>
     </div>
 
-    <div class="box">
-      <strong>3-Way Reconciliation Alert:</strong> Phát hiện ~1.5% đơn lệch tiền (<code>AMOUNT_MISMATCH</code>) và ~1.2% đơn thiếu IPN (<code>MISSING_IPN</code>) giữa <code>merchant_orders</code> và <code>bank_settlements</code>.
+    <!-- 6 KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">1. Tổng Đơn Tạo (Created)</div>
+        <div class="kpi-val">10,500</div>
+        <div class="kpi-sub">3,800 khách hàng duy nhất</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">2. Thanh Toán Thành Công</div>
+        <div class="kpi-val" style="color:var(--green);">7,550</div>
+        <div class="kpi-sub">Conversion Rate tổng: <strong>71.90%</strong></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">3. Điểm Nghẽn QR Drop-off</div>
+        <div class="kpi-val" style="color:var(--red);">24.07%</div>
+        <div class="kpi-sub">2,394 đơn mở QR nhưng chưa trả</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">4. Đỉnh Trễ IPN (20:00)</div>
+        <div class="kpi-val" style="color:var(--amber);">2,502 ms</div>
+        <div class="kpi-sub">Cao gấp <strong>3.1x</strong> giờ thường (~800ms)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">5. Tổng Phí MDR Đã Trả</div>
+        <div class="kpi-val">62.92M đ</div>
+        <div class="kpi-sub">MoMo 1.5% • ZaloPay 1.3%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">6. Cảnh Báo Lệch Đối Soát</div>
+        <div class="kpi-val" style="color:var(--red);">198 đơn</div>
+        <div class="kpi-sub">Tổng lệch cần truy thu: <strong>2,101,000 đ</strong></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Left: Checkout Funnel + Wallet Scorecard -->
+      <div class="card">
+        <div class="card-title"><span>🔻 Phễu Chuyển Đổi Thanh Toán (Funnel)</span></div>
+        <p class="card-sub">Truy vấn bằng CTE + Window Functions (<code>LAG</code>, <code>FIRST_VALUE</code>)</p>
+
+        <div class="funnel-step">
+          <div class="f-meta"><span>Bước 1: Khởi tạo đơn (Order Created)</span><span>10,500 (100%)</span></div>
+          <div class="f-bar"><div class="f-fill" style="width:100%; background:#4f46e5;">100.00%</div></div>
+        </div>
+        <div class="funnel-step">
+          <div class="f-meta">
+            <span>Bước 2: Mở trang QR Gateway</span>
+            <span>9,944 <span class="dropoff-tag">-5.30% rớt</span></span>
+          </div>
+          <div class="f-bar"><div class="f-fill" style="width:94.7%; background:#6366f1;">94.70%</div></div>
+        </div>
+        <div class="funnel-step">
+          <div class="f-meta">
+            <span>Bước 3: Hoàn tất thanh toán (Paid)</span>
+            <span>7,550 <span class="dropoff-tag">-24.07% rớt</span></span>
+          </div>
+          <div class="f-bar"><div class="f-fill" style="width:71.9%; background:#10b981;">71.90%</div></div>
+        </div>
+
+        <div class="wallet-cmp">
+          <div class="w-box">
+            <div class="w-head"><span style="color:#ec4899;">● Ví MoMo</span><span>71.66%</span></div>
+            <div style="color:var(--muted);">Đơn thành công: <strong>4,307 / 6,010</strong></div>
+            <div style="color:var(--muted);">IPN Latency TB: <strong>1,309 ms</strong></div>
+            <div style="color:var(--muted);">Phí MDR (1.5%): <strong>38,103,495 đ</strong></div>
+          </div>
+          <div class="w-box">
+            <div class="w-head"><span style="color:#38bdf8;">● Ví ZaloPay</span><span>72.23%</span></div>
+            <div style="color:var(--muted);">Đơn thành công: <strong>3,243 / 4,490</strong></div>
+            <div style="color:var(--muted);">IPN Latency TB: <strong>1,283 ms</strong></div>
+            <div style="color:var(--muted);">Phí MDR (1.3%): <strong>24,813,308 đ</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: 24-Hour IPN Latency Interactive SVG Chart -->
+      <div class="card">
+        <div class="card-title">
+          <span>⚡ Độ Trễ IPN Webhook Theo Khung Giờ (0h–23h)</span>
+          <span style="font-size:11.5px; color:var(--amber); font-weight:700;">Peak Zone: 19h–21h</span>
+        </div>
+        <p class="card-sub">Phát hiện nghẽn cổ chai xử lý đồng bộ (Synchronous Bottleneck) vào khung giờ vàng mua sắm buổi tối</p>
+        <div id="chartWrap" style="width:100%; overflow-x:auto;"></div>
+        <div id="hoverInfo" style="margin-top:10px; font-size:12.5px; color:var(--muted); text-align:center;">
+          Di chuột qua các điểm trên biểu đồ để xem chi tiết độ trễ trung bình từng giờ.
+        </div>
+      </div>
+    </div>
+
+    <!-- 3-Way Reconciliation Explorer -->
+    <div class="card">
+      <div class="card-title">
+        <span>🔍 Bảng Kiểm Tra Đối Soát 3 Bên (Merchant × Gateway × Bank Settlement)</span>
+        <span style="font-size:12px; color:var(--muted);">Mẫu dữ liệu bất thường trích xuất từ SQL Query #4 & #8</span>
+      </div>
+      <p class="card-sub">Tự động gắn cờ các giao dịch bị lệch tiền sao kê, mất gói tin IPN hoặc trễ ngày chốt sổ Cut-off T+2</p>
+
+      <div class="filter-bar">
+        <button class="f-btn active" onclick="filterRecon('ALL', this)">Tất cả bất thường</button>
+        <button class="f-btn" onclick="filterRecon('AMOUNT_MISMATCH', this)">Lệch số tiền (103 đơn • 2.03M đ)</button>
+        <button class="f-btn" onclick="filterRecon('MISSING_IPN', this)">Thiếu IPN (95 đơn)</button>
+        <button class="f-btn" onclick="filterRecon('CUTOFF_LAG', this)">Lệch ngày Cut-off T+2</button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Mã Đơn (Order ID)</th>
+              <th>Ví</th>
+              <th>Giá trị Đơn (Merchant)</th>
+              <th>Sao kê Ngân hàng (Bank)</th>
+              <th>Chênh lệch</th>
+              <th>Trạng thái IPN</th>
+              <th>Loại Cờ Đối Soát</th>
+              <th>Hành động Kế toán / Ops</th>
+            </tr>
+          </thead>
+          <tbody id="reconBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Actionable Recommendations -->
+    <div class="rec-grid">
+      <div class="rec-card" style="border-left-color:#10b981;">
+        <h4>🚀 Đề xuất 1: One-Tap Deep-link & Push 10p</h4>
+        <p>Tích hợp nút mở thẳng app MoMo/ZaloPay trên Mobile Web và nhắc nhở ở phút thứ 10 để kéo giảm tỷ lệ rớt đơn QR từ <strong>24.07% xuống dưới 15%</strong>.</p>
+      </div>
+      <div class="rec-card" style="border-left-color:#f59e0b;">
+        <h4>⚡ Đề xuất 2: Bất đồng bộ hóa IPN với Message Queue</h4>
+        <p>Đặt Kafka/RabbitMQ trước <code>/api/payment/callback</code> để trả <code>HTTP 200</code> dưới 100ms, triệt tiêu đỉnh trễ <strong>2,502 ms</strong> khung giờ 19h–21h.</p>
+      </div>
+      <div class="rec-card" style="border-left-color:#ef4444;">
+        <h4>🛡️ Đề xuất 3: Cronjob Đối soát Tự động 01:30 AM</h4>
+        <p>Tự động chạy SQL 3-Way Reconciliation + kiểm tra cửa sổ Cut-off <code>23:45–00:15</code> mỗi sáng để thu hồi <strong>2,101,000 đ</strong> lệch sao kê.</p>
+      </div>
+      <div class="rec-card" style="border-left-color:#38bdf8;">
+        <h4>💰 Đề xuất 4: Điều hướng Ví tối ưu MDR</h4>
+        <p>A/B Testing ưu tiên hiển thị ZaloPay (MDR <strong>1.3%</strong> vs 1.5%, Success Rate <strong>72.23%</strong>) giúp tiết kiệm ~13% chi phí phí cổng thanh toán.</p>
+      </div>
     </div>
   </div>
+
+  <script>
+    const hourlyData = [
+      [0,747],[1,800],[2,781],[3,807],[4,819],[5,852],[6,732],[7,780],
+      [8,790],[9,804],[10,806],[11,789],[12,785],[13,812],[14,793],[15,775],
+      [16,809],[17,801],[18,812],[19,2313],[20,2502],[21,2484],[22,1243],[23,791]
+    ];
+
+    function renderChart() {
+      const w = 680, h = 250, padL = 46, padR = 18, padT = 20, padB = 34;
+      const maxY = 2800;
+      const x = i => padL + (i / 23) * (w - padL - padR);
+      const y = val => padT + (1 - val / maxY) * (h - padT - padB);
+
+      const pts = hourlyData.map(([hr, val]) => `${x(hr).toFixed(1)},${y(val).toFixed(1)}`).join(' ');
+      const areaPts = `${x(0).toFixed(1)},${h - padB} ${pts} ${x(23).toFixed(1)},${h - padB}`;
+
+      let circles = '';
+      hourlyData.forEach(([hr, val]) => {
+        const isPeak = hr >= 19 && hr <= 21;
+        circles += `<circle cx="${x(hr)}" cy="${y(val)}" r="${isPeak ? 5.5 : 3.8}" fill="${isPeak ? '#ef4444' : '#6366f1'}" stroke="#fff" stroke-width="1.5" style="cursor:pointer" onmouseenter="showHr(${hr},${val})" />`;
+      });
+
+      let xLabels = '';
+      for (let hr = 0; hr < 24; hr += 2) {
+        xLabels += `<text x="${x(hr)}" y="${h - 10}" fill="#94a3b8" font-size="10.5" text-anchor="middle">${hr}h</text>`;
+      }
+
+      const svg = `
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block;">
+        <defs>
+          <linearGradient id="latGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#6366f1" stop-opacity="0.38"/>
+            <stop offset="100%" stop-color="#6366f1" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        <rect x="${x(19)-10}" y="${padT}" width="${x(21)-x(19)+20}" height="${h-padT-padB}" fill="rgba(239,68,68,0.12)" rx="6"/>
+        <line x1="${padL}" y1="${y(1000)}" x2="${w-padR}" y2="${y(1000)}" stroke="#334155" stroke-dasharray="4 4" stroke-width="1"/>
+        <line x1="${padL}" y1="${y(2000)}" x2="${w-padR}" y2="${y(2000)}" stroke="#334155" stroke-dasharray="4 4" stroke-width="1"/>
+        <text x="6" y="${y(1000)+4}" fill="#94a3b8" font-size="10">1000ms</text>
+        <text x="6" y="${y(2000)+4}" fill="#94a3b8" font-size="10">2000ms</text>
+        <polygon points="${areaPts}" fill="url(#latGrad)"/>
+        <polyline points="${pts}" fill="none" stroke="#6366f1" stroke-width="2.5"/>
+        ${circles}
+        ${xLabels}
+      </svg>`;
+      document.getElementById('chartWrap').innerHTML = svg;
+    }
+
+    function showHr(hr, val) {
+      const status = (hr >= 19 && hr <= 21) ? '⚠️ GIỜ CAO ĐIỂM (Cần Queue bất đồng bộ)' : '✓ Bình thường';
+      document.getElementById('hoverInfo').innerHTML = `Khung giờ <strong>${hr}:00 – ${hr}:59</strong> • Độ trễ IPN TB: <strong>${val.toLocaleString()} ms</strong> • ${status}`;
+    }
+
+    const reconRows = [
+      { id: 'ORD_000297', w: 'MOMO', mAmt: 150000, bAmt: 100000, ipn: 'SUCCESS', flag: 'AMOUNT_MISMATCH', act: 'Tạo biên bản truy thu 50,000 đ với đối tác Ví' },
+      { id: 'ORD_001657', w: 'MOMO', mAmt: 1250000, bAmt: 1200000, ipn: 'SUCCESS', flag: 'AMOUNT_MISMATCH', act: 'Kiểm tra mã giảm giá đồng tài trợ / lệch sao kê' },
+      { id: 'ORD_002124', w: 'ZALOPAY', mAmt: 1250000, bAmt: 1200000, ipn: 'SUCCESS', flag: 'AMOUNT_MISMATCH', act: 'Tạo biên bản truy thu 50,000 đ với đối tác Ví' },
+      { id: 'ORD_000092', w: 'ZALOPAY', mAmt: 1250000, bAmt: 1249000, ipn: 'SUCCESS', flag: 'AMOUNT_MISMATCH', act: 'Lệch làm tròn phí 1,000 đ — điều chỉnh bút toán' },
+      { id: 'ORD_000029', w: 'MOMO', mAmt: 320000, bAmt: 320000, ipn: 'MISSING', flag: 'MISSING_IPN', act: 'Tiền đã về Bank — gọi Query API đồng bộ bù log IPN' },
+      { id: 'ORD_000388', w: 'ZALOPAY', mAmt: 250000, bAmt: 250000, ipn: 'MISSING', flag: 'MISSING_IPN', act: 'Tiền đã về Bank — cập nhật bù biên lai cho khách' },
+      { id: 'ORD_003758', w: 'MOMO', mAmt: 450000, bAmt: 400000, ipn: 'MISSING', flag: 'MISSING_IPN', act: 'Vừa mất IPN vừa lệch 50k — ưu tiên đối soát khẩn' },
+      { id: 'ORD_002285', w: 'ZALOPAY', mAmt: 680000, bAmt: 680000, ipn: 'SUCCESS', flag: 'CUTOFF_LAG', act: 'GD lúc 23:54:34 ngày 11/11 → Sao kê về T+2 (13/11)' },
+      { id: 'ORD_009213', w: 'MOMO', mAmt: 450000, bAmt: 450000, ipn: 'SUCCESS', flag: 'CUTOFF_LAG', act: 'GD lúc 23:54:57 ngày 09/11 → Tự động khớp kỳ T+2' }
+    ];
+
+    function renderRecon(filter) {
+      const tbody = document.getElementById('reconBody');
+      const list = filter === 'ALL' ? reconRows : reconRows.filter(r => r.flag === filter);
+      tbody.innerHTML = list.map(r => {
+        const diff = r.mAmt - r.bAmt;
+        return `<tr>
+          <td style="font-family:monospace; font-weight:700;">${r.id}</td>
+          <td><strong>${r.w}</strong></td>
+          <td>${r.mAmt.toLocaleString('vi-VN')} đ</td>
+          <td>${r.bAmt.toLocaleString('vi-VN')} đ</td>
+          <td style="font-weight:800; color:${diff > 0 ? '#ef4444' : '#10b981'};">${diff > 0 ? '-' + diff.toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
+          <td><code>${r.ipn}</code></td>
+          <td><span class="flag flag-${r.flag}">${r.flag}</span></td>
+          <td style="color:var(--muted); font-size:12px;">${r.act}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function filterRecon(type, btn) {
+      document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderRecon(type);
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light');
+      document.getElementById('themeBtn').textContent = isLight ? '🌙 Chế độ Tối' : '☀️ Chế độ Sáng';
+    }
+
+    renderChart();
+    renderRecon('ALL');
+  </script>
 </body>
 </html>

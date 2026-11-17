@@ -47,7 +47,12 @@ Script `generate_data.py` sinh dữ liệu vào SQLite (`ewallet_analytics.db`) 
 
 ## 📈 2. Executive Dashboard Summary (Kết quả Thực tế)
 
+- **Web BI Dashboard v2.0 (Interactive Dark/Light Mode)**: [dashboard/index.html](dashboard/index.html)
 - **Figma Dashboard (Interactive)**: 👉 [Mở Dashboard trên Figma](https://www.figma.com/design/3KZYUyxTCNIUQi0isXUejF?node-id=3-3&autoplay-code-preview=3-3)
+
+<p align="center">
+  <img src="charts/dashboard_overview.png" alt="E-Wallet Post-Launch Analytics Dashboard" width="100%" />
+</p>
 
 ### 2.1 Checkout Funnel (Phễu chuyển đổi)
 | Bước (Step) | Số đơn hàng | Tỷ lệ trên tổng | Tỷ lệ rớt bước (Drop-off) |
@@ -104,4 +109,25 @@ python3 generate_data.py
 
 # 2. Chạy toàn bộ 7 câu SQL Analytics (CTE & Window Functions)
 sqlite3 -header -column ewallet_analytics.db < analytics_queries.sql
+```
+
+---
+
+## 🛡️ 6. Real-World Anti-Fraud Benchmark (Kaggle Credit Card Dataset)
+
+Bên cạnh bộ dữ liệu giả lập 30 ngày (10,500+ đơn hàng), dự án bổ sung kịch bản kiểm thử trên dữ liệu giao dịch thật **Credit Card Fraud Detection** (`creditcard.csv` — 284,807 giao dịch, 0 missing values) để đối chiếu các rule **Anti-Fraud & Anomaly Detection**:
+
+- **Script EDA & Pre-processing:** `eda_creditcard.py` (chuyển đổi `Time` → `hour_of_day`, phân nhóm `Amount`, kiểm tra mất cân bằng nhãn `0.1727%` fraud).
+- **Biểu đồ tổng hợp:** `charts/creditcard_eda.png`
+
+<p align="center">
+  <img src="charts/creditcard_eda.png" alt="Credit Card Fraud EDA" width="100%" />
+</p>
+- **Key Insights:**
+  - **Zero-amount & High-value Anomaly:** Giao dịch `Amount = 0` có tỷ lệ gian lận cao nhất (**1.48%**), tiếp theo là nhóm `> 500` (**0.38%**).
+  - **Off-peak Risk Hours:** Tỷ lệ gian lận tăng đột biến vào khung giờ rạng sáng (**2h sáng: 1.71%**, **4h sáng: 1.04%**).
+
+```bash
+# Chạy EDA & xuất biểu đồ trên bộ dữ liệu thực tế
+python3 eda_creditcard.py
 ```
